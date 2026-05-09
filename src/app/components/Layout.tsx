@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Menu, X, Linkedin, Mail, Phone, MapPin } from 'lucide-react';
+import logo from '../../assets/krabdata-logo.png';
 
 export function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -22,7 +23,7 @@ export function Header() {
   const navLinks = [
     { to: '/', label: 'Accueil' },
     { to: '/services', label: 'Nos Services' },
-    { to: '/realisations', label: 'Cas d'usage' },
+    { to: '/realisations', label: 'Cas d\'usage' },
     { to: '/a-propos', label: 'À propos' },
     { to: '/contact', label: 'Contact' },
   ];
@@ -36,6 +37,7 @@ export function Header() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-20">
           <Link to="/" className="flex items-center space-x-3">
+            <img src={logo} alt="KRABDATA logo" className="h-14 w-14.5 object-contain rounded-lg border border-[#E8CFA5]" />
             <div className="text-white font-bold text-2xl">
               <span className="font-black">KRAB</span>
               <span className="font-normal text-[#E8CFA5]">DATA</span>
@@ -47,9 +49,11 @@ export function Header() {
               <Link
                 key={link.to}
                 to={link.to}
-                className={`text-white hover:text-[#E8CFA5] transition-colors duration-200 ${
-                  location.pathname === link.to ? 'text-[#E8CFA5]' : ''
-                }`}
+                className={`transition-colors duration-200 font-medium
+                  ${location.pathname === link.to
+                    ? 'text-[#E8CFA5] underline underline-offset-8 decoration-2'
+                    : 'text-white hover:text-[#E8CFA5]'}
+                `}
               >
                 {link.label}
               </Link>
