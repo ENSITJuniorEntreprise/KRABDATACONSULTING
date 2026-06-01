@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Menu, X, Linkedin, Mail, Phone, MapPin } from 'lucide-react';
+import { Menu, X, Linkedin, Mail } from 'lucide-react';
 import logo from '../../assets/krabdata-logo.png';
 
 export function Header() {
@@ -137,17 +137,9 @@ export function Footer() {
             <ul className="space-y-2 text-sm text-gray-300">
               <li className="flex items-center space-x-2">
                 <Mail size={16} />
-                <a href="mailto:contact@krabdata.com" className="hover:text-[#E8CFA5]">
-                  contact@krabdata.com
+                <a href="mailto:Haythem.benmechichi@krabdata.com" className="hover:text-[#E8CFA5]">
+                  Haythem.benmechichi@krabdata.com
                 </a>
-              </li>
-              <li className="flex items-center space-x-2">
-                <Phone size={16} />
-                <span>+33 X XX XX XX XX</span>
-              </li>
-              <li className="flex items-center space-x-2">
-                <MapPin size={16} />
-                <span>France</span>
               </li>
             </ul>
           </div>
