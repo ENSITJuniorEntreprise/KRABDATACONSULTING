@@ -156,7 +156,7 @@ export function Footer() {
             <h3 className="font-semibold mb-4">Suivez-nous</h3>
             <div className="flex space-x-4">
               <a
-                href="https://linkedin.com"
+                href="https://www.linkedin.com/company/krabdata/"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-gray-300 hover:text-[#E8CFA5] transition-colors"

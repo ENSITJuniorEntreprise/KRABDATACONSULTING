@@ -1,6 +1,20 @@
 import { useState } from 'react';
+import emailjs from '@emailjs/browser';
 import { motion } from 'motion/react';
-import { Mail, Phone, MapPin, Send, CheckCircle2 } from 'lucide-react';
+import { Mail, Send, CheckCircle2 } from 'lucide-react';
+
+const EMAILJS_SERVICE_ID = import.meta.env.VITE_EMAILJS_SERVICE_ID;
+const EMAILJS_TEMPLATE_ID = import.meta.env.VITE_EMAILJS_TEMPLATE_ID;
+const EMAILJS_PUBLIC_KEY = import.meta.env.VITE_EMAILJS_PUBLIC_KEY;
+
+const SUBJECT_LABELS: Record<string, string> = {
+  'data-ia': 'Data & IA',
+  digitalisation: 'Digitalisation',
+  automatisation: 'Automatisation',
+  web: 'Développement Web',
+  cloud: 'Cloud & Infrastructure',
+  autre: 'Autre',
+};
 
 export default function Contact() {
   const [formData, setFormData] = useState({
@@ -8,12 +22,13 @@ export default function Contact() {
     lastName: '',
     company: '',
     email: '',
-    phone: '',
     subject: '',
     message: '',
   });
 
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [isSending, setIsSending] = useState(false);
+  const [submitError, setSubmitError] = useState('');
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     setFormData({
@@ -22,23 +37,57 @@ export default function Contact() {
     });
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Form submitted:', formData);
-    setIsSubmitted(true);
+    setSubmitError('');
 
-    setTimeout(() => {
-      setIsSubmitted(false);
+    if (!EMAILJS_SERVICE_ID || !EMAILJS_TEMPLATE_ID || !EMAILJS_PUBLIC_KEY) {
+      setSubmitError('Configuration EmailJS manquante. Vérifiez les variables d\'environnement.');
+      return;
+    }
+
+    setIsSending(true);
+
+    try {
+      await emailjs.send(
+        EMAILJS_SERVICE_ID,
+        EMAILJS_TEMPLATE_ID,
+        {
+          from_name: `${formData.firstName} ${formData.lastName}`.trim(),
+          from_first_name: formData.firstName,
+          from_last_name: formData.lastName,
+          from_company: formData.company,
+          from_email: formData.email,
+          reply_to: formData.email,
+          subject: SUBJECT_LABELS[formData.subject] ?? formData.subject,
+          message: formData.message,
+          sent_at: new Date().toLocaleString('fr-FR'),
+        },
+        {
+          publicKey: EMAILJS_PUBLIC_KEY,
+        },
+      );
+
+      setIsSubmitted(true);
+
+      setTimeout(() => {
+        setIsSubmitted(false);
+      }, 5000);
+
       setFormData({
         firstName: '',
         lastName: '',
         company: '',
         email: '',
-        phone: '',
         subject: '',
         message: '',
       });
-    }, 5000);
+    } catch (error) {
+      console.error('EmailJS error:', error);
+      setSubmitError('Une erreur est survenue lors de l\'envoi. Merci de réessayer.');
+    } finally {
+      setIsSending(false);
+    }
   };
 
   return (
@@ -133,34 +182,19 @@ export default function Contact() {
                     />
                   </div>
 
-                  <div className="grid sm:grid-cols-2 gap-4">
-                    <div>
-                      <label htmlFor="email" className="block text-sm font-semibold text-gray-700 mb-2">
-                        Email *
-                      </label>
-                      <input
-                        type="email"
-                        id="email"
-                        name="email"
-                        value={formData.email}
-                        onChange={handleChange}
-                        required
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#3A5BA0] focus:border-transparent outline-none transition"
-                      />
-                    </div>
-                    <div>
-                      <label htmlFor="phone" className="block text-sm font-semibold text-gray-700 mb-2">
-                        Téléphone
-                      </label>
-                      <input
-                        type="tel"
-                        id="phone"
-                        name="phone"
-                        value={formData.phone}
-                        onChange={handleChange}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#3A5BA0] focus:border-transparent outline-none transition"
-                      />
-                    </div>
+                  <div>
+                    <label htmlFor="email" className="block text-sm font-semibold text-gray-700 mb-2">
+                      Email *
+                    </label>
+                    <input
+                      type="email"
+                      id="email"
+                      name="email"
+                      value={formData.email}
+                      onChange={handleChange}
+                      required
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#3A5BA0] focus:border-transparent outline-none transition"
+                    />
                   </div>
 
                   <div>
@@ -203,11 +237,18 @@ export default function Contact() {
 
                   <button
                     type="submit"
-                    className="w-full bg-[#1B2D5B] text-white px-8 py-4 rounded-lg font-semibold text-lg hover:bg-[#3A5BA0] transition-colors duration-200 flex items-center justify-center space-x-2"
+                    disabled={isSending}
+                    className="w-full bg-[#1B2D5B] text-white px-8 py-4 rounded-lg font-semibold text-lg hover:bg-[#3A5BA0] transition-colors duration-200 flex items-center justify-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    <span>Envoyer le message</span>
+                    <span>{isSending ? 'Envoi en cours...' : 'Envoyer le message'}</span>
                     <Send size={20} />
                   </button>
+
+                  {submitError && (
+                    <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-red-700">
+                      {submitError}
+                    </div>
+                  )}
                 </form>
               )}
             </motion.div>
@@ -229,44 +270,11 @@ export default function Contact() {
                     </div>
                     <div>
                       <h3 className="font-semibold text-gray-900 mb-1">Email</h3>
-                      <a href="mailto:contact@krabdata.com" className="text-[#3A5BA0] hover:underline">
-                        contact@krabdata.com
+                      <a href="mailto:Haythem.benmechichi@krabdata.com" className="text-[#3A5BA0] hover:underline">
+                        Haythem.benmechichi@krabdata.com
                       </a>
                     </div>
                   </div>
-
-                  <div className="flex items-start space-x-4">
-                    <div className="bg-[#E8CFA5] w-12 h-12 rounded-lg flex items-center justify-center flex-shrink-0">
-                      <Phone className="text-[#1B2D5B]" size={24} />
-                    </div>
-                    <div>
-                      <h3 className="font-semibold text-gray-900 mb-1">Téléphone</h3>
-                      <p className="text-gray-700">+33 X XX XX XX XX</p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-start space-x-4">
-                    <div className="bg-[#E8CFA5] w-12 h-12 rounded-lg flex items-center justify-center flex-shrink-0">
-                      <MapPin className="text-[#1B2D5B]" size={24} />
-                    </div>
-                    <div>
-                      <h3 className="font-semibold text-gray-900 mb-1">Localisation</h3>
-                      <p className="text-gray-700">France</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="bg-gradient-to-br from-[#1B2D5B] to-[#3A5BA0] p-8 rounded-2xl text-white">
-                <h3 className="text-2xl font-bold mb-4">Horaires d'ouverture</h3>
-                <div className="space-y-2 text-gray-200">
-                  <p>Lundi - Vendredi : 9h00 - 18h00</p>
-                  <p>Samedi - Dimanche : Fermé</p>
-                </div>
-                <div className="mt-6 pt-6 border-t border-white/20">
-                  <p className="text-sm text-gray-200">
-                    Réponse sous 24h ouvrées
-                  </p>
                 </div>
               </div>
 
